@@ -3,3 +3,28 @@ teto_por_video_nominal_usd:
   kling: 30
 teto_mensal_out_of_pocket_usd: 150
 alerta_mensal_pct: 0.8
+
+# Estimativas nominais por etapa (decisions §6, §11.3).
+# Sprint 2 usa valores fixos; Sprint 7 troca por leitura de response.usage real.
+step_estimates:
+  transcribe:
+    cost_usd: 0.018       # ~3min @ $0.006/min (gpt-4o-transcribe)
+    paid_via: out_of_pocket
+  script:
+    cost_usd: 0.005       # ~3K in + 2K out @ $0.25/$2 por 1M (gpt-5-mini)
+    paid_via: out_of_pocket
+  pre_gate:
+    cost_usd: 0.01        # gemini-2.5-flash, em crédito Google
+    paid_via: google_credits
+  images:
+    cost_usd: 0.16        # ~4 candidatas × $0.039 (Nano Banana)
+    paid_via: google_credits
+  video:
+    cost_usd: 12.0        # placeholder; ajusta por provider Sprint 4
+    paid_via: google_credits
+  tts:
+    cost_usd: 0.22        # ElevenLabs ~75s
+    paid_via: out_of_pocket
+  policy_post:
+    cost_usd: 0.10        # gemini-2.5-flash multimodal
+    paid_via: google_credits

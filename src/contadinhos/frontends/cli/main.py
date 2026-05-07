@@ -50,11 +50,12 @@ def script(
 ):
     story = _resolve_story(story_path)
     deps = build_deps(with_fakes)
-    with story.lock():
-        roteiro = pipeline.run_script(story, deps, target_duration_s=target_duration_s)
-    if roteiro.policy_check.verdict == "review_required":
-        typer.echo(f"⚠️ pré-gate bloqueou: {roteiro.policy_check.flags}", err=True)
-        raise typer.Exit(2)
+    try:
+        with story.lock():
+            roteiro = pipeline.run_script(story, deps, target_duration_s=target_duration_s)
+    except pipeline.PipelineBlocked as exc:
+        typer.echo(f"⚠️ pré-gate bloqueou: {exc}", err=True)
+        raise typer.Exit(2) from exc
     typer.echo(f"roteiro com {len(roteiro.cenas)} cenas")
 
 

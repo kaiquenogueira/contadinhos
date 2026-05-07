@@ -10,8 +10,29 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from contadinhos.core.assemble.ffmpeg import concat_clips
+from contadinhos.core.budget import append_ledger_entry
+from contadinhos.core.config import load_config
 from contadinhos.core.schemas import Roteiro
 from contadinhos.core.story import Story
+
+
+class PipelineBlocked(RuntimeError):
+    """Gate (pré ou pós) bloqueou — abre revisão humana, sem auto-retry."""
+
+
+def _provider_id(provider: object, fallback: str) -> str:
+    return getattr(provider, "model", None) or fallback
+
+
+def _step_cost(step: str) -> tuple[float, str]:
+    """Estimativa nominal por etapa + paid_via, lida de `config/budget.yaml`.
+
+    Sprint 2 usa estimativas fixas (decisions §6); Sprint 7 troca por leitura
+    de `response.usage` real. Mini-first: valores baixos por default.
+    """
+    cfg = load_config("budget").get("step_estimates", {})
+    entry = cfg.get(step, {})
+    return float(entry.get("cost_usd", 0.0)), entry.get("paid_via", "out_of_pocket")
 
 
 @dataclass
@@ -35,16 +56,46 @@ def run_transcribe(story: Story, deps: PipelineDeps) -> Path:
     text = deps.transcriber.transcribe(audio)
     out = story.path / "transcript.txt"
     out.write_text(text)
+    cost, paid_via = _step_cost("transcribe")
+    append_ledger_entry(
+        story=story,
+        step="transcribe",
+        provider=_provider_id(deps.transcriber, "fake"),
+        cost_usd=cost,
+        paid_via=paid_via,
+    )
     return out
 
 
 def run_script(story: Story, deps: PipelineDeps, target_duration_s: float = 75) -> Roteiro:
     transcript = (story.path / "transcript.txt").read_text()
     roteiro = deps.roteirista.generate(transcript=transcript, target_duration_s=target_duration_s)
-    # pré-gate como chamada separada (§7.1)
+    cost_s, paid_s = _step_cost("script")
+    append_ledger_entry(
+        story=story,
+        step="script",
+        provider=_provider_id(deps.roteirista, "fake"),
+        cost_usd=cost_s,
+        paid_via=paid_s,
+    )
+    # pré-gate como chamada separada (§7.1) — provider distinto do roteirista
     policy = deps.pre_gate.audit(roteiro)
+    cost_g, paid_g = _step_cost("pre_gate")
+    append_ledger_entry(
+        story=story,
+        step="pre_gate",
+        provider=_provider_id(deps.pre_gate, "fake"),
+        cost_usd=cost_g,
+        paid_via=paid_g,
+    )
     roteiro.policy_check = policy
     story.write_roteiro(roteiro)
+    # snapshot separado pro audit trail (§16)
+    (story.path / "policy_check_pre.json").write_text(policy.model_dump_json(indent=2))
+    if policy.verdict == "review_required":
+        raise PipelineBlocked(
+            f"pré-gate bloqueou story={story.path.name} flags={policy.flags}"
+        )
     return roteiro
 
 
@@ -103,7 +154,7 @@ def run_publish(story: Story, deps: PipelineDeps, publish_mode: str = "private_o
     policy = deps.post_gate.audit(final)
     (story.path / "policy_check_post.json").write_text(policy.model_dump_json(indent=2))
     if policy.verdict == "review_required":
-        raise RuntimeError(f"pós-gate bloqueou: {policy.flags}")
+        raise PipelineBlocked(f"pós-gate bloqueou: {policy.flags}")
     # upload
     title = f"{roteiro.titulo} | contadinhos"
     description = f"{roteiro.titulo}\n\n{roteiro.sinopse_curta}"
@@ -141,11 +192,10 @@ def run_all(story: Story, deps: PipelineDeps) -> None:
         elif action == "assemble":
             run_assemble(story, deps)
         elif action == "policy_post":
-            roteiro = story.read_roteiro()
             policy = deps.post_gate.audit(story.path / "final.mp4")
             (story.path / "policy_check_post.json").write_text(policy.model_dump_json(indent=2))
             if policy.verdict == "review_required":
-                raise RuntimeError(f"pós-gate bloqueou: {policy.flags}")
+                raise PipelineBlocked(f"pós-gate bloqueou: {policy.flags}")
         elif action == "publish":
             run_publish(story, deps)
         elif action == "done":

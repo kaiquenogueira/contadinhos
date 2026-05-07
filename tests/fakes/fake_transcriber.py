@@ -16,5 +16,7 @@ class FakeTranscriber:
         self._transcript = transcript
 
     def transcribe(self, audio_path: Path) -> str:
+        if not audio_path.exists():
+            raise FileNotFoundError(f"áudio não encontrado: {audio_path}")
         self.calls.append({"audio_path": audio_path})
         return self._transcript
