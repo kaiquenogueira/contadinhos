@@ -1,0 +1,5 @@
+teto_por_video_nominal_usd:
+  veo: 80
+  kling: 30
+teto_mensal_out_of_pocket_usd: 150
+alerta_mensal_pct: 0.8

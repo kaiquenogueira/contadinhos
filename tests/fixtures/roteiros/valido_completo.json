@@ -1,0 +1,32 @@
+{
+  "titulo": "A raposa e a flor cantante",
+  "sinopse_curta": "Uma raposa pequenina descobre uma flor que canta e faz amizade com ela.",
+  "duracao_total_s": 75,
+  "personagens": [
+    { "id": "raposa", "descricao_visual": "raposa laranja amigável, olhos grandes, expressão curiosa" },
+    { "id": "menininha", "descricao_visual": "menininha de cabelo cacheado castanho, vestido amarelo" }
+  ],
+  "imagens_chave": [
+    { "id": "raposa", "prompt": "raposa laranja, aquarela, livro infantil" },
+    { "id": "menininha", "prompt": "menininha cacheada, vestido amarelo, aquarela" },
+    { "id": "elenco", "prompt": "raposa e menininha juntas no jardim" }
+  ],
+  "cenas": [
+    { "idx": 1, "modo": "i2v", "imagem_chave_ref": "raposa", "prompt_visual": "raposa entrando em jardim", "narracao": "Era uma vez uma raposinha curiosa.", "duracao_s": 7 },
+    { "idx": 2, "modo": "t2v", "prompt_visual": "flor brilhante no canteiro", "narracao": "Ela viu uma flor diferente.", "duracao_s": 6 },
+    { "idx": 3, "modo": "i2v", "imagem_chave_ref": "raposa", "prompt_visual": "raposa cheirando a flor", "narracao": "Aproximou-se devagar.", "duracao_s": 7 },
+    { "idx": 4, "modo": "t2v", "prompt_visual": "flor cantando notas musicais visíveis", "narracao": "A flor começou a cantar.", "duracao_s": 8 },
+    { "idx": 5, "modo": "i2v", "imagem_chave_ref": "raposa", "prompt_visual": "raposa dançando feliz", "narracao": "A raposa dançou feliz.", "duracao_s": 7 },
+    { "idx": 6, "modo": "i2v", "imagem_chave_ref": "menininha", "prompt_visual": "menininha chegando no jardim", "narracao": "Uma menininha apareceu.", "duracao_s": 7 },
+    { "idx": 7, "modo": "i2v", "imagem_chave_ref": "elenco", "prompt_visual": "raposa e menininha brincando juntas", "narracao": "Elas brincaram a tarde toda.", "duracao_s": 8 },
+    { "idx": 8, "modo": "t2v", "prompt_visual": "pôr-do-sol em jardim", "narracao": "E o dia terminou em paz.", "duracao_s": 7 },
+    { "idx": 9, "modo": "i2v", "imagem_chave_ref": "elenco", "prompt_visual": "raposa e menininha se despedindo", "narracao": "Até amanhã, amiga.", "duracao_s": 6 },
+    { "idx": 10, "modo": "t2v", "prompt_visual": "estrelas surgindo no céu", "narracao": "Boa noite, jardim.", "duracao_s": 6 }
+  ],
+  "policy_check": {
+    "verdict": "ok",
+    "severity": "low",
+    "flags": [],
+    "reviewer_note": null
+  }
+}

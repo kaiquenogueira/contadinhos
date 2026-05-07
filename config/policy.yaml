@@ -1,0 +1,14 @@
+categories:
+  - medo
+  - violencia
+  - tema_adulto
+  - linguagem
+  - glitch_visual
+  - vibe_sombria
+  - outro
+pre_gate:
+  provider: google_genai
+  model: gemini-2.5-flash
+post_gate:
+  provider: google_genai
+  model: gemini-2.5-flash

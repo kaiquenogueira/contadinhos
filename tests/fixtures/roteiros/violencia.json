@@ -1,0 +1,24 @@
+{
+  "titulo": "A caçada do lobo",
+  "sinopse_curta": "Lobo persegue raposa e quase a captura.",
+  "duracao_total_s": 30,
+  "personagens": [
+    { "id": "raposa", "descricao_visual": "raposa laranja" },
+    { "id": "lobo", "descricao_visual": "lobo cinza grande, dentes à mostra" }
+  ],
+  "imagens_chave": [
+    { "id": "raposa", "prompt": "raposa fugindo" },
+    { "id": "lobo", "prompt": "lobo rosnando, postura agressiva" }
+  ],
+  "cenas": [
+    { "idx": 1, "modo": "i2v", "imagem_chave_ref": "lobo", "prompt_visual": "lobo rosnando ameaçador", "narracao": "O lobo apareceu na floresta com fome.", "duracao_s": 10 },
+    { "idx": 2, "modo": "i2v", "imagem_chave_ref": "raposa", "prompt_visual": "raposa correndo em pânico", "narracao": "A raposa correu apavorada para salvar sua vida.", "duracao_s": 10 },
+    { "idx": 3, "modo": "t2v", "prompt_visual": "garras do lobo quase alcançando a raposa", "narracao": "Quase foi pega pelas garras afiadas.", "duracao_s": 10 }
+  ],
+  "policy_check": {
+    "verdict": "ok",
+    "severity": "low",
+    "flags": [],
+    "reviewer_note": null
+  }
+}

@@ -1,0 +1,22 @@
+hard_fails:
+  - id: 1
+    label: "Glitch visual em rosto/mãos do protagonista"
+  - id: 2
+    label: "Vinheta quebrada"
+  - id: 3
+    label: "Áudio dessincronizado (>0.5s)"
+  - id: 4
+    label: "Texto na tela com typo/encoding/off-screen"
+  - id: 5
+    label: "Tom sombrio/assustador emergente"
+soft_fails:
+  - id: 6
+    label: "Aquarela menos vibrante que o padrão"
+  - id: 7
+    label: "Narração sem brilho"
+  - id: 8
+    label: "Duração apertada/longa demais"
+  - id: 9
+    label: "Final abrupto"
+  - id: 10
+    label: "Música muito alta vs narração"

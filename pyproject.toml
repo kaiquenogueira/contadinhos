@@ -1,0 +1,50 @@
+[project]
+name = "contadinhos"
+version = "0.1.0"
+description = "Pipeline pessoal pra transformar histórias em vídeos animados anônimos via IA"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "typer>=0.12",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "httpx>=0.27",
+    "python-slugify>=8.0",
+    "openai>=1.50",
+    "google-genai>=0.3",
+]
+
+[project.scripts]
+contadinhos = "contadinhos.frontends.cli.main:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contadinhos"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: toca FS real, ffmpeg real, providers via Fake",
+    "real_provider: chama API paga real (skip default; rodar manual antes de DoD)",
+    "slow: testes > 5s",
+]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

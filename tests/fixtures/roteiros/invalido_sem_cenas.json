@@ -1,0 +1,14 @@
+{
+  "titulo": "Roteiro vazio",
+  "sinopse_curta": "Sem cenas.",
+  "duracao_total_s": 0,
+  "personagens": [],
+  "imagens_chave": [],
+  "cenas": [],
+  "policy_check": {
+    "verdict": "ok",
+    "severity": "low",
+    "flags": [],
+    "reviewer_note": null
+  }
+}

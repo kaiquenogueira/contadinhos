@@ -1,0 +1,11 @@
+.git/
+.venv/
+.secrets/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+veo3/
+veo3/.venv/
+assets/music/
+.DS_Store

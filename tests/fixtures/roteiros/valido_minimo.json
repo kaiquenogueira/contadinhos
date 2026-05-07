@@ -1,0 +1,34 @@
+{
+  "titulo": "A raposa curiosa",
+  "sinopse_curta": "Uma raposa pequenina descobre uma flor que canta no jardim.",
+  "duracao_total_s": 12,
+  "personagens": [
+    { "id": "raposa", "descricao_visual": "raposa laranja amigável, olhos grandes" }
+  ],
+  "imagens_chave": [
+    { "id": "raposa", "prompt": "raposa pequenina, aquarela" }
+  ],
+  "cenas": [
+    {
+      "idx": 1,
+      "modo": "i2v",
+      "imagem_chave_ref": "raposa",
+      "prompt_visual": "raposa caminhando por jardim",
+      "narracao": "Era uma vez uma raposa muito curiosa.",
+      "duracao_s": 6
+    },
+    {
+      "idx": 2,
+      "modo": "t2v",
+      "prompt_visual": "flor brilhante no jardim",
+      "narracao": "E havia uma flor cantante.",
+      "duracao_s": 6
+    }
+  ],
+  "policy_check": {
+    "verdict": "ok",
+    "severity": "low",
+    "flags": [],
+    "reviewer_note": null
+  }
+}

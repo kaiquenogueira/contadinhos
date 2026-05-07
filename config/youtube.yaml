@@ -1,0 +1,25 @@
+publish_mode: private_only
+title_template: "{titulo} | contadinhos"
+description_template: |
+  {titulo}
+
+  {sinopse_curta}
+
+  🎨 Histórias em aquarela para crianças.
+  🎙️ Narração suave para os pequenos.
+  👶 Conteúdo feito para crianças.
+
+  📺 Inscreva-se: youtube.com/@contadinhos
+
+  #historiainfantil #aquarela #criancas
+tags_fixas:
+  - historiainfantil
+  - aquarela
+  - criancas
+  - contacaodehistorias
+  - infantil
+  - aquarela
+  - contoinfantil
+  - kids
+category_id: 1
+default_language: pt-BR

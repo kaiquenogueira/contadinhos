@@ -1,0 +1,44 @@
+google_genai:
+  # Caminho A (default): API key direta — atende Veo, Nano Banana, Gemini multimodal
+  auth_mode: api_key
+  api_key_env: GOOGLE_GENERATIVE_AI_API_KEY
+  # Caminho B (futuro): Vertex AI via ADC
+  # auth_mode: vertexai
+
+video:
+  provider: veo
+  model: veo-3.1-generate-preview  # full quality; preview status (§19)
+  # alternativas: veo-3.1-fast-generate-preview, veo-3.1-lite-generate-preview
+image:
+  provider: nano_banana
+  model: gemini-3.1-flash-image-preview  # Nano Banana 2; preview (§19)
+  # consistência de até 5 personagens — endereça galho de Clarinha drift
+tts:
+  provider: elevenlabs
+transcribe:
+  provider: openai
+  model: gpt-4o-transcribe  # GA, sucessor do whisper-1
+  api_key_env: OPENAI_API_KEY
+  # fallback barato: gpt-4o-mini-transcribe
+script:
+  provider: openai
+  model: gpt-5-mini  # $0,25/$2 por 1M; default §3.3 (mini + prompt cuidadoso)
+  api_key_env: OPENAI_API_KEY
+  # fallback qualidade: gpt-5.5 (15× mais caro). Subir só se calibração da Sprint 7
+  # mostrar dor real após prompt engineering — ver §3.3.
+post_gate:
+  provider: google_genai
+  model: gemini-2.5-flash  # GA estável; gates ficam em GA por princípio
+
+retry:
+  max_attempts: 3
+  base_delay_s: 1
+  jitter: 0.25
+  retryable_status: [500, 502, 503, 504]
+
+costs_per_second:
+  veo: 0.50
+  kling: 0.18
+
+testing:
+  use_fakes: false

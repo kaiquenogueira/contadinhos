@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Project
+.secrets/*
+!.secrets/.gitkeep
+stories/*
+!stories/.gitkeep
+.bot_state.json
+veo3/
+
+# Assets que pesam (regeneráveis)
+assets/music/*
+!assets/music/.gitkeep
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Env
+.env
