@@ -1,13 +1,38 @@
-"""Wiring de providers — Sprint 1 só tem Fakes.
+"""Wiring de providers.
 
-Sprints 2+ trocam o `_real_deps()` pelos providers reais conforme cada
-um for implementado.
+Sprint 3: `_real_deps()` monta providers reais lendo keys de `.env` via
+python-dotenv. Fakes continuam disponíveis via `--with-fakes` ou env
+`CONTADINHOS_FAKES=1`.
 """
 from __future__ import annotations
 
 import os
 
 from contadinhos.core.pipeline import PipelineDeps
+
+
+_DOTENV_LOADED = False
+
+
+def _ensure_env_loaded() -> None:
+    """Carrega .env da raiz do projeto na 1ª invocação. Idempotente."""
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+    from dotenv import load_dotenv
+    project_root = _project_root()
+    load_dotenv(project_root / ".env")
+    _DOTENV_LOADED = True
+
+
+def _require_env(key: str) -> str:
+    val = os.environ.get(key)
+    if not val:
+        raise RuntimeError(
+            f"variável de ambiente {key} não definida. "
+            f"Adicione em .env ou exporte no shell."
+        )
+    return val
 
 
 def _project_root():
@@ -51,9 +76,40 @@ def _fake_deps() -> PipelineDeps:
 
 
 def _real_deps() -> PipelineDeps:
-    raise NotImplementedError(
-        "Providers reais ainda não implementados (Sprints 2+). "
-        "Use --with-fakes ou env CONTADINHOS_FAKES=1."
+    """Monta providers reais.
+
+    Sprint 3 cobre transcribe/script/pre_gate/images/video. TTS/post_gate/upload
+    ainda Fake até Sprints 4–5.
+    """
+    _ensure_env_loaded()
+    openai_key = _require_env("OPENAI_API_KEY")
+    google_key = _require_env("GOOGLE_GENERATIVE_AI_API_KEY")
+
+    from contadinhos.core.images.nano_banana import NanoBananaImageGenerator
+    from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
+    from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
+    from contadinhos.core.transcribe import OpenAITranscriber
+    from contadinhos.core.video.veo import Veo31VideoGenerator
+
+    # Fakes ainda em uso pra etapas Sprints 4–5
+    import sys
+
+    project_root = _project_root()
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    from tests.fakes.fake_post_gate import FakePostGate
+    from tests.fakes.fake_tts import FakeTTS
+    from tests.fakes.fake_youtube_uploader import FakeYouTubeUploader
+
+    return PipelineDeps(
+        transcriber=OpenAITranscriber(api_key=openai_key),
+        roteirista=OpenAIRoteirista(api_key=openai_key),
+        pre_gate=GeminiPreGateAuditor(api_key=google_key),
+        image_generator=NanoBananaImageGenerator(api_key=google_key),
+        video_generator=Veo31VideoGenerator(api_key=google_key),
+        tts=FakeTTS(),
+        post_gate=FakePostGate(),
+        youtube_uploader=FakeYouTubeUploader(),
     )
 
 

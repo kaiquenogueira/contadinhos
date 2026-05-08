@@ -8,6 +8,7 @@ import typer
 from slugify import slugify
 
 from contadinhos.core import pipeline
+from contadinhos.core.images.picker import pick_candidate
 from contadinhos.core.story import Story
 from contadinhos.frontends.cli.deps import build_deps
 
@@ -72,6 +73,19 @@ def images(
 
 
 @app.command()
+def pick(
+    story_path: Path,
+    img_id: Annotated[str, typer.Argument(help="id da imagem-chave")],
+    candidate: Annotated[int, typer.Option("--candidate", "-c", help="índice da candidata (0..N-1)")] = 0,
+):
+    """Escolhe candidata como chosen.png pra uma imagem-chave (Sprint 3 §13)."""
+    story = _resolve_story(story_path)
+    with story.lock():
+        pick_candidate(story, img_id, candidate_idx=candidate)
+    typer.echo(f"chosen.png ← candidate_{candidate}.png ({img_id})")
+
+
+@app.command()
 def video(
     story_path: Path,
     with_fakes: Annotated[bool, typer.Option("--with-fakes")] = False,
@@ -123,13 +137,25 @@ def publish(
 def run(
     story_path: Path,
     with_fakes: Annotated[bool, typer.Option("--with-fakes")] = False,
+    auto_pick: Annotated[
+        bool,
+        typer.Option(
+            "--auto-pick",
+            help="modo dev: escolhe automaticamente candidate_0 como chosen.png",
+        ),
+    ] = False,
 ):
-    """Roda todas as etapas a partir de `next_action` até `done`."""
+    """Roda etapas a partir de `next_action`. Para em `pick_images` salvo --auto-pick."""
+    import os
+
     story = _resolve_story(story_path)
     deps = build_deps(with_fakes)
+    # auto_pick implícito em modo Fakes (flag ou env): pipeline E2E sem humano
+    if with_fakes or os.environ.get("CONTADINHOS_FAKES") == "1":
+        auto_pick = True
     with story.lock():
-        pipeline.run_all(story, deps)
-    typer.echo(f"story {story.path.name} completa")
+        pipeline.run_all(story, deps, auto_pick=auto_pick)
+    typer.echo(f"story {story.path.name}: next={story.next_action()}")
 
 
 @app.command()

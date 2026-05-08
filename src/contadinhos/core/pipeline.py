@@ -100,20 +100,33 @@ def run_script(story: Story, deps: PipelineDeps, target_duration_s: float = 75) 
 
 
 def run_images(story: Story, deps: PipelineDeps, candidatos: int = 4) -> None:
-    """Gera N candidatas por personagem; primeira candidata vira `chosen.png`.
+    """Gera N candidatas por personagem (decisions §13 fase 3).
 
-    Sprint 1 não tem UX de escolha humana — primeira sempre escolhida.
-    Sprint 3 substitui pela escolha real via CLI/Telegram.
+    **Não** cria `chosen.png` — escolha humana via `core.images.picker.pick_candidate`
+    (subcomando CLI `pick`). `next_action` retorna `pick_images` enquanto
+    candidatas existem mas chosen falta.
     """
     roteiro = story.read_roteiro()
+    n_imagens = 0
     for img in roteiro.imagens_chave:
         out_dir = story.path / "images" / img.id
-        candidatas = deps.image_generator.generate(
+        # idempotente: se já há candidatas, não regera
+        if (out_dir / "candidate_0.png").exists():
+            continue
+        deps.image_generator.generate(
             prompt=img.prompt, n=candidatos, output_dir=out_dir
         )
-        # Sprint 1: primeira como escolha (TODO Sprint 3: prompt humano)
-        chosen = out_dir / "chosen.png"
-        chosen.write_bytes(candidatas[0].read_bytes())
+        n_imagens += 1
+    if n_imagens > 0:
+        cost, paid_via = _step_cost("images")
+        append_ledger_entry(
+            story=story,
+            step="images",
+            provider=_provider_id(deps.image_generator, "fake"),
+            cost_usd=cost * n_imagens,
+            paid_via=paid_via,
+            qty=n_imagens * candidatos,
+        )
 
 
 def run_video(story: Story, deps: PipelineDeps) -> None:
@@ -170,11 +183,16 @@ def run_publish(story: Story, deps: PipelineDeps, publish_mode: str = "private_o
     return result
 
 
-def run_all(story: Story, deps: PipelineDeps) -> None:
+def run_all(story: Story, deps: PipelineDeps, auto_pick: bool = False) -> None:
     """Roda etapas a partir do `next_action` da story até `done`.
 
     Resumível: invocar 2× é seguro — pula etapas já feitas.
+
+    `auto_pick=True` (modo dev/test) escolhe automaticamente `candidate_0.png`
+    como `chosen.png`. Default False — humano-in-loop, para em `pick_images`.
     """
+    from contadinhos.core.images.picker import pick_candidate
+
     while True:
         action = story.next_action()
         if action == "new":
@@ -185,6 +203,13 @@ def run_all(story: Story, deps: PipelineDeps) -> None:
             run_script(story, deps)
         elif action == "images":
             run_images(story, deps)
+        elif action == "pick_images":
+            if not auto_pick:
+                return  # humano-in-loop: para aqui pra escolha manual
+            roteiro = story.read_roteiro()
+            for img in roteiro.imagens_chave:
+                if not (story.path / "images" / img.id / "chosen.png").exists():
+                    pick_candidate(story, img.id, candidate_idx=0)
         elif action == "video":
             run_video(story, deps)
         elif action == "tts":

@@ -40,7 +40,7 @@ markers = [
     "real_provider: chama API paga real (skip default; rodar manual antes de DoD)",
     "slow: testes > 5s",
 ]
-addopts = "-ra"
+addopts = "-ra -m 'not real_provider'"
 
 [tool.ruff]
 line-length = 100

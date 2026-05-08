@@ -62,8 +62,11 @@ class Story:
         """Retorna a próxima etapa baseada nos arquivos presentes na story.
 
         Estados ordenados:
-            new → transcribe → script → images → video → tts → assemble →
-            policy_post → publish → done
+            new → transcribe → script → images → pick_images → video → tts →
+            assemble → policy_post → publish → done
+
+        `pick_images` aparece quando há candidatas geradas (`candidate_0.png`)
+        mas falta a escolha humana (`chosen.png`) em pelo menos uma imagem-chave.
         """
         if not (self.path / "audio.m4a").exists():
             return "new"
@@ -72,9 +75,12 @@ class Story:
         if not (self.path / "roteiro.json").exists():
             return "script"
         roteiro = self.read_roteiro()
-        # imagens-chave aprovadas: cada personagem tem chosen.png
         for img in roteiro.imagens_chave:
-            if not (self.path / "images" / img.id / "chosen.png").exists():
+            img_dir = self.path / "images" / img.id
+            if not (img_dir / "chosen.png").exists():
+                # candidatas existem mas falta escolha humana → pick_images
+                if (img_dir / "candidate_0.png").exists():
+                    return "pick_images"
                 return "images"
         # clipes: um por cena
         for cena in roteiro.cenas:
