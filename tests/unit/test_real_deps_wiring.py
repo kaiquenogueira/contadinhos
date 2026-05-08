@@ -49,16 +49,15 @@ def test_real_deps_constroi_providers_reais(monkeypatch):
         "contadinhos.frontends.cli.deps._ensure_env_loaded", lambda: None
     )
     deps = _real_deps()
-    # types correctos sem precisar conectar
+    # 8/8 reais após Sprint 5
     assert deps.transcriber.__class__.__name__ == "OpenAITranscriber"
     assert deps.roteirista.__class__.__name__ == "OpenAIRoteirista"
     assert deps.pre_gate.__class__.__name__ == "GeminiPreGateAuditor"
     assert deps.image_generator.__class__.__name__ == "NanoBananaImageGenerator"
     assert deps.video_generator.__class__.__name__ == "Veo31VideoGenerator"
     assert deps.tts.__class__.__name__ == "ElevenLabsTTS"
-    # Sprint 5 ainda Fake
-    assert deps.post_gate.__class__.__name__ == "FakePostGate"
-    assert deps.youtube_uploader.__class__.__name__ == "FakeYouTubeUploader"
+    assert deps.post_gate.__class__.__name__ == "GeminiPostGate"
+    assert deps.youtube_uploader.__class__.__name__ == "YouTubeUploader"
 
 
 def test_build_deps_com_fakes_nao_le_env(monkeypatch):

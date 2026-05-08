@@ -10,6 +10,7 @@ from slugify import slugify
 from contadinhos.core import pipeline
 from contadinhos.core.images.picker import pick_candidate
 from contadinhos.core.story import Story
+from contadinhos.core.upload import auth as yt_auth
 from contadinhos.frontends.cli.deps import build_deps
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -162,6 +163,23 @@ def run(
 def status(story_path: Path):
     story = _resolve_story(story_path)
     typer.echo(story.next_action())
+
+
+@app.command(name="auth-youtube")
+def auth_youtube():
+    """Roda OAuth desktop flow uma vez. Salva token em ~/.contadinhos/youtube_token.json.
+
+    Pré-requisito: client_secret.json baixado do Google Cloud Console
+    (OAuth 2.0 Client ID tipo Desktop) já em ~/.contadinhos/. Veja
+    docs/sprint5-setup.md.
+    """
+    typer.echo(f"client_secret esperado em: {yt_auth.client_secret_path()}")
+    if not yt_auth.client_secret_path().exists():
+        typer.echo("⚠️  client_secret.json ausente — siga docs/sprint5-setup.md", err=True)
+        raise typer.Exit(2)
+    creds = yt_auth.run_oauth_flow()
+    typer.echo(f"✅ token salvo em {yt_auth.token_path()}")
+    typer.echo(f"   scopes: {', '.join(creds.scopes or [])}")
 
 
 if __name__ == "__main__":

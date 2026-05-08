@@ -86,21 +86,17 @@ def _real_deps() -> PipelineDeps:
     google_key = _require_env("GOOGLE_GENERATIVE_AI_API_KEY")
     elevenlabs_key = _require_env("ELEVENLABS_API_KEY")
 
+    from contadinhos.core.config import load_config
     from contadinhos.core.images.nano_banana import NanoBananaImageGenerator
+    from contadinhos.core.policy.post_gate import GeminiPostGate
     from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
     from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
     from contadinhos.core.transcribe import OpenAITranscriber
     from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
+    from contadinhos.core.upload.youtube import YouTubeUploader
     from contadinhos.core.video.veo import Veo31VideoGenerator
 
-    # Fakes ainda em uso pra etapas Sprint 5
-    import sys
-
-    project_root = _project_root()
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
-    from tests.fakes.fake_post_gate import FakePostGate
-    from tests.fakes.fake_youtube_uploader import FakeYouTubeUploader
+    yt_cfg = load_config("youtube")
 
     return PipelineDeps(
         transcriber=OpenAITranscriber(api_key=openai_key),
@@ -109,8 +105,14 @@ def _real_deps() -> PipelineDeps:
         image_generator=NanoBananaImageGenerator(api_key=google_key),
         video_generator=Veo31VideoGenerator(api_key=google_key),
         tts=ElevenLabsTTS(api_key=elevenlabs_key),
-        post_gate=FakePostGate(),
-        youtube_uploader=FakeYouTubeUploader(),
+        post_gate=GeminiPostGate(api_key=google_key),
+        # YouTubeUploader é lazy-loaded — credentials só são consultadas
+        # no momento do upload (run_publish), permitindo rodar transcribe→
+        # assemble sem ter feito `auth-youtube` ainda.
+        youtube_uploader=YouTubeUploader(
+            category_id=str(yt_cfg.get("category_id", 1)),
+            default_language=yt_cfg.get("default_language", "pt-BR"),
+        ),
     )
 
 

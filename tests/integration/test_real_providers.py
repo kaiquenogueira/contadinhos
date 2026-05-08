@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 
 from contadinhos.core.images.nano_banana import NanoBananaImageGenerator
+from contadinhos.core.policy.post_gate import GeminiPostGate
 from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
 from contadinhos.core.schemas import Roteiro
 from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
@@ -111,3 +112,19 @@ def test_real_elevenlabs_tts_curto(tmp_path):
     assert out.stat().st_size > 1000  # WAV mínimo plausível
     # WAV RIFF header
     assert out.read_bytes()[:4] == b"RIFF"
+
+
+@pytest.mark.real_provider
+@pytest.mark.slow
+def test_real_post_gate_video_pequeno(placeholder_mp4):
+    """Pós-gate sobre placeholder MP4 (5s). Custo: ~$0.05.
+
+    Não validamos verdict específico — placeholder pode ou não disparar
+    flags. Só checamos que o auditor consegue: 1) upload Files API
+    2) processing → ACTIVE 3) parse JSON do output.
+    """
+    key = _require("GOOGLE_GENERATIVE_AI_API_KEY")
+    p = GeminiPostGate(api_key=key)
+    pc = p.audit(placeholder_mp4)
+    assert pc.verdict in {"ok", "review_required"}
+    assert pc.severity in {"low", "medium", "high"}

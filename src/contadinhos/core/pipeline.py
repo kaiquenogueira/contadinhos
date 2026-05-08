@@ -169,26 +169,56 @@ def run_assemble(story: Story, deps: PipelineDeps, validate: bool = False) -> Pa
     return final
 
 
-def run_publish(story: Story, deps: PipelineDeps, publish_mode: str = "private_only") -> dict:
+def run_publish(story: Story, deps: PipelineDeps, publish_mode: str | None = None) -> dict:
+    """Pós-gate sobre `final.mp4` → upload (decisions §7.2 + §Publish mode).
+
+    `publish_mode` lido de `config/youtube.yaml` se omisso. Mapeado pra
+    `privacyStatus` via `core.upload.publish_mode.to_privacy_status`.
+    """
+    from contadinhos.core.upload.publish_mode import to_privacy_status
+
+    yt_cfg = load_config("youtube")
+    if publish_mode is None:
+        publish_mode = yt_cfg.get("publish_mode", "private_only")
+
     roteiro = story.read_roteiro()
     final = story.path / "final.mp4"
     # pós-gate
     policy = deps.post_gate.audit(final)
     (story.path / "policy_check_post.json").write_text(policy.model_dump_json(indent=2))
+    cost_p, paid_p = _step_cost("policy_post")
+    append_ledger_entry(
+        story=story,
+        step="policy_post",
+        provider=_provider_id(deps.post_gate, "fake"),
+        cost_usd=cost_p,
+        paid_via=paid_p,
+    )
     if policy.verdict == "review_required":
         raise PipelineBlocked(f"pós-gate bloqueou: {policy.flags}")
-    # upload
-    title = f"{roteiro.titulo} | contadinhos"
-    description = f"{roteiro.titulo}\n\n{roteiro.sinopse_curta}"
+
+    # template-driven (config/youtube.yaml)
+    title_template = yt_cfg.get("title_template", "{titulo} | contadinhos")
+    desc_template = yt_cfg.get("description_template", "{titulo}\n\n{sinopse_curta}")
+    tags = yt_cfg.get("tags_fixas", ["historiainfantil", "aquarela"])
+    title = title_template.format(
+        titulo=roteiro.titulo, sinopse_curta=roteiro.sinopse_curta
+    )
+    description = desc_template.format(
+        titulo=roteiro.titulo, sinopse_curta=roteiro.sinopse_curta
+    )
+
     result = deps.youtube_uploader.upload(
         video_path=final,
         title=title,
         description=description,
-        tags=["historiainfantil", "aquarela"],
+        tags=tags,
         made_for_kids=True,
-        privacy_status="private" if publish_mode == "private_only" else "unlisted",
+        privacy_status=to_privacy_status(publish_mode),
     )
-    (story.path / "upload_result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+    (story.path / "upload_result.json").write_text(
+        json.dumps(result, indent=2, ensure_ascii=False)
+    )
     return result
 
 
