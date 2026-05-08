@@ -1,1 +1,14 @@
-default_voice_id: ""
+# TTS — ElevenLabs (decisions §5).
+# Voice IDs do default library: https://elevenlabs.io/app/voice-library
+# Trocar default_voice_id pelo voice ID escolhido após audição A/B.
+default_voice_id: "21m00Tcm4TlvDq8ikWAM"  # "Rachel" — placeholder warm/calm
+model_id: eleven_multilingual_v2          # suporte pt-BR
+output_format: wav_24000                  # WAV 24 kHz com header, lossless pra montagem
+api_key_env: ELEVENLABS_API_KEY
+
+# Voice settings (ElevenLabs SDK aceita esses fields)
+voice_settings:
+  stability: 0.55       # mais alto = mais consistente, menos expressivo
+  similarity_boost: 0.75
+  style: 0.30           # 0 = neutro, 1 = teatral; 0.30 pra storytelling infantil
+  use_speaker_boost: true

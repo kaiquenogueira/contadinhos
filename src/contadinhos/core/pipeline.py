@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from contadinhos.core.assemble.ffmpeg import concat_clips
+from contadinhos.core.assemble.ffmpeg import concat_clips, validate_final
 from contadinhos.core.budget import append_ledger_entry
 from contadinhos.core.config import load_config
 from contadinhos.core.schemas import Roteiro
@@ -155,9 +155,18 @@ def run_tts(story: Story, deps: PipelineDeps, voice_id: str = "default") -> None
         deps.tts.synthesize(text=cena.narracao, voice_id=voice_id, output_path=out)
 
 
-def run_assemble(story: Story, deps: PipelineDeps) -> Path:
+def run_assemble(story: Story, deps: PipelineDeps, validate: bool = False) -> Path:
+    """Mix narração + concat clips em `final.mp4`.
+
+    `validate=True` chama `validate_final` (ffprobe) — útil em modo real, mas
+    Fakes não casam duração de placeholders então default é off.
+    """
     roteiro = story.read_roteiro()
-    return concat_clips(roteiro, story.path)
+    final = concat_clips(roteiro, story.path)
+    if validate:
+        expected_duration = sum(c.duracao_s for c in roteiro.cenas)
+        validate_final(final, expected_duration_s=expected_duration, tolerance_s=2.0)
+    return final
 
 
 def run_publish(story: Story, deps: PipelineDeps, publish_mode: str = "private_only") -> dict:

@@ -11,6 +11,7 @@ from contadinhos.frontends.cli.deps import _real_deps, build_deps
 def test_real_deps_requer_openai_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setenv("GOOGLE_GENERATIVE_AI_API_KEY", "fake")
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "fake")
     monkeypatch.setattr(
         "contadinhos.frontends.cli.deps._ensure_env_loaded", lambda: None
     )
@@ -21,6 +22,7 @@ def test_real_deps_requer_openai_key(monkeypatch):
 def test_real_deps_requer_google_key(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "fake")
     monkeypatch.delenv("GOOGLE_GENERATIVE_AI_API_KEY", raising=False)
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "fake")
     monkeypatch.setattr(
         "contadinhos.frontends.cli.deps._ensure_env_loaded", lambda: None
     )
@@ -28,9 +30,21 @@ def test_real_deps_requer_google_key(monkeypatch):
         _real_deps()
 
 
+def test_real_deps_requer_elevenlabs_key(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "fake")
+    monkeypatch.setenv("GOOGLE_GENERATIVE_AI_API_KEY", "fake")
+    monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "contadinhos.frontends.cli.deps._ensure_env_loaded", lambda: None
+    )
+    with pytest.raises(RuntimeError, match="ELEVENLABS_API_KEY"):
+        _real_deps()
+
+
 def test_real_deps_constroi_providers_reais(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-fake")
     monkeypatch.setenv("GOOGLE_GENERATIVE_AI_API_KEY", "fake-google")
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "fake-eleven")
     monkeypatch.setattr(
         "contadinhos.frontends.cli.deps._ensure_env_loaded", lambda: None
     )
@@ -41,8 +55,8 @@ def test_real_deps_constroi_providers_reais(monkeypatch):
     assert deps.pre_gate.__class__.__name__ == "GeminiPreGateAuditor"
     assert deps.image_generator.__class__.__name__ == "NanoBananaImageGenerator"
     assert deps.video_generator.__class__.__name__ == "Veo31VideoGenerator"
-    # Sprint 3 não cobre essas etapas — Fake
-    assert deps.tts.__class__.__name__ == "FakeTTS"
+    assert deps.tts.__class__.__name__ == "ElevenLabsTTS"
+    # Sprint 5 ainda Fake
     assert deps.post_gate.__class__.__name__ == "FakePostGate"
     assert deps.youtube_uploader.__class__.__name__ == "FakeYouTubeUploader"
 

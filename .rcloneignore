@@ -1,11 +1,48 @@
+# rclone exclusion list — backup só do que importa.
+# Sobem: final.mp4, JSONs (roteiro, policy, cost_ledger, upload_result,
+# prompts_snapshot), transcript.txt, audio.m4a (input cru) e chosen.png
+# por personagem. Intermediários grandes ficam locais.
+
+# === git e environments ===
 .git/
 .venv/
-.secrets/
+.venv/**
 __pycache__/
+__pycache__/**
 *.pyc
 .pytest_cache/
+.pytest_cache/**
 .ruff_cache/
+.ruff_cache/**
+
+# === segredos ===
+.env
+.env.*
+.secrets/
+
+# === macOS ===
+.DS_Store
+
+# === restos de experimentos antigos ===
 veo3/
 veo3/.venv/
+
+# === assets pesados que não precisam de backup remoto ===
 assets/music/
-.DS_Store
+
+# === artefatos intermediários por story (grandes, regeneráveis) ===
+# Clipes individuais por cena — final.mp4 já contém tudo
+clips/
+clips/**
+
+# Candidatas de imagem-chave — só `chosen.png` importa
+images/**/candidate_*.png
+
+# Narrações por cena — final.mp4 já tem áudio mixado
+audio/narration_*.wav
+
+# === locks e temporários ===
+.lock
+contadinhos_mix_*/
+*.tmp
+*.tmp.*

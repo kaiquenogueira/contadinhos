@@ -28,6 +28,7 @@ from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
 from contadinhos.core.schemas import Roteiro
 from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
 from contadinhos.core.transcribe import OpenAITranscriber
+from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
 
 
 def _load_env_once():
@@ -91,3 +92,22 @@ def test_real_nano_banana_gera_imagem(tmp_path):
     assert out[0].exists()
     # PNG signature
     assert out[0].read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+@pytest.mark.real_provider
+def test_real_elevenlabs_tts_curto(tmp_path):
+    """ElevenLabs TTS — texto curto. Custo: ~$0.05.
+
+    Verifica que: 1) responde sem erro 2) WAV válido (RIFF header).
+    """
+    key = _require("ELEVENLABS_API_KEY")
+    tts = ElevenLabsTTS(api_key=key)
+    out = tts.synthesize(
+        text="Olá, eu sou a Clarinha.",
+        voice_id="default",
+        output_path=tmp_path / "smoke.wav",
+    )
+    assert out.exists()
+    assert out.stat().st_size > 1000  # WAV mínimo plausível
+    # WAV RIFF header
+    assert out.read_bytes()[:4] == b"RIFF"

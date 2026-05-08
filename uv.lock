@@ -144,6 +144,7 @@ name = "contadinhos"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "elevenlabs" },
     { name = "google-genai" },
     { name = "httpx" },
     { name = "openai" },
@@ -164,6 +165,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "elevenlabs", specifier = ">=1.0" },
     { name = "google-genai", specifier = ">=0.3" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "openai", specifier = ">=1.50" },
@@ -228,6 +230,23 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
+]
+
+[[package]]
+name = "elevenlabs"
+version = "2.46.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/71/62b97757dd3ad34d62d3c1cdbf8f66a5052585213d63ba436bd656f68f81/elevenlabs-2.46.0.tar.gz", hash = "sha256:63f5403ca094ca6a06812216ad89a7299aaac4422973581cfd31187e8c57cf33", size = 572607, upload-time = "2026-05-07T11:28:49.661Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/79/e5457ebd3e78093960399f819c51c49f52d3bcea04977f9847725aae9e83/elevenlabs-2.46.0-py3-none-any.whl", hash = "sha256:cc9e8b06c3e2adf2ec075bbe3042e18c7e29e3d42b017556af33e7155ff5b004", size = 1567634, upload-time = "2026-05-07T11:28:47.312Z" },
 ]
 
 [[package]]

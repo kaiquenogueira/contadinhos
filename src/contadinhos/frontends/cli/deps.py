@@ -84,21 +84,22 @@ def _real_deps() -> PipelineDeps:
     _ensure_env_loaded()
     openai_key = _require_env("OPENAI_API_KEY")
     google_key = _require_env("GOOGLE_GENERATIVE_AI_API_KEY")
+    elevenlabs_key = _require_env("ELEVENLABS_API_KEY")
 
     from contadinhos.core.images.nano_banana import NanoBananaImageGenerator
     from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
     from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
     from contadinhos.core.transcribe import OpenAITranscriber
+    from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
     from contadinhos.core.video.veo import Veo31VideoGenerator
 
-    # Fakes ainda em uso pra etapas Sprints 4–5
+    # Fakes ainda em uso pra etapas Sprint 5
     import sys
 
     project_root = _project_root()
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from tests.fakes.fake_post_gate import FakePostGate
-    from tests.fakes.fake_tts import FakeTTS
     from tests.fakes.fake_youtube_uploader import FakeYouTubeUploader
 
     return PipelineDeps(
@@ -107,7 +108,7 @@ def _real_deps() -> PipelineDeps:
         pre_gate=GeminiPreGateAuditor(api_key=google_key),
         image_generator=NanoBananaImageGenerator(api_key=google_key),
         video_generator=Veo31VideoGenerator(api_key=google_key),
-        tts=FakeTTS(),
+        tts=ElevenLabsTTS(api_key=elevenlabs_key),
         post_gate=FakePostGate(),
         youtube_uploader=FakeYouTubeUploader(),
     )
