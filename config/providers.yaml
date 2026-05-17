@@ -7,14 +7,22 @@ google_genai:
 
 video:
   provider: veo
-  model: veo-3.1-generate-preview  # full quality; preview status (§19)
-  # alternativas: veo-3.1-fast-generate-preview, veo-3.1-lite-generate-preview
+  # Política de tier (grelha 2026-05-17, memória project_testavel_e2e):
+  #   lite  → plumbing/dev (1º E2E capado, <$1)
+  #   fast  → TETO de produção (arena ELO: fast≈standard dentro do erro)
+  #   standard (veo-3.1-generate-preview) → MORTO (4× o preço por ~nada)
+  # Seedance 2.0 (líder de arena) = galho §19, só se Clarinha decepcionar I2V.
+  model: veo-3.1-lite-generate-preview  # preview status (§19)
+  # produção: veo-3.1-fast-generate-preview
 image:
   provider: nano_banana
   model: gemini-3.1-flash-image-preview  # Nano Banana 2; preview (§19)
   # consistência de até 5 personagens — endereça galho de Clarinha drift
 tts:
-  provider: elevenlabs
+  # openai (default, Sprint 5b) | gemini | elevenlabs
+  # ElevenLabs descartada (key não provisionada); OpenAI/Gemini usam keys
+  # já em mãos. Voz/estilo em config/voices.yaml. A/B pt-BR decide produção.
+  provider: openai
 transcribe:
   provider: openai
   model: gpt-4o-transcribe  # GA, sucessor do whisper-1
