@@ -1,6 +1,28 @@
-# TTS — ElevenLabs (decisions §5).
+# TTS — config por provider (decisions §5; Sprint 5b).
+# Provider ativo: config/providers.yaml::tts.provider.
+# A/B pt-BR (OpenAI vs Gemini vs ElevenLabs) decide a voz de produção
+# por evidência (mini-first) — ver docs/sprint5b-testavel-e2e.md.
+
+# ── Steering compartilhado pelos TTS instruíveis (OpenAI / Gemini) ──
+# OpenAI: vai no campo `instructions`. Gemini: prefixado ao texto.
+style_instruction: >-
+  Narre como um contador de histórias infantis em português do Brasil:
+  voz calorosa e acolhedora, ritmo pausado, tom de livro ilustrado em
+  aquarela na hora de dormir. Articule com carinho, sem pressa.
+
+# ── OpenAI gpt-4o-mini-tts ──
+openai:
+  voice: coral                 # warm/storytelling; alt: sage, ballad
+  model: gpt-4o-mini-tts
+
+# ── Gemini 2.5 Flash TTS ──
+# preview — confirmar nome de modelo/voz na doc speech-generation do Gemini.
+gemini:
+  voice: Sulafat               # voz prebuilt calorosa; tunável
+  model: gemini-2.5-flash-preview-tts
+
+# ── ElevenLabs (galho de produção; key não provisionada) ──
 # Voice IDs do default library: https://elevenlabs.io/app/voice-library
-# Trocar default_voice_id pelo voice ID escolhido após audição A/B.
 default_voice_id: "21m00Tcm4TlvDq8ikWAM"  # "Rachel" — placeholder warm/calm
 model_id: eleven_multilingual_v2          # suporte pt-BR
 output_format: wav_24000                  # WAV 24 kHz com header, lossless pra montagem

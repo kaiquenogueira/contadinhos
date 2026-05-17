@@ -5,20 +5,23 @@ Skip por default; rode com:
     uv run pytest -m real_provider -v
 
 Pré-condições: `.env` com `OPENAI_API_KEY` e `GOOGLE_GENERATIVE_AI_API_KEY`.
+ElevenLabs descartada (Sprint 5b) — TTS smoke roda OpenAI + Gemini.
 Custos por execução completa:
 
 - transcribe (OpenAI): ~$0.02 (silêncio 30s)
 - script (gpt-5-mini): ~$0.005
 - pre_gate (gemini-2.5-flash): ~$0.01 (em crédito Google)
 - nano_banana (4 candidatas): ~$0.16 (em crédito Google)
+- tts openai (gpt-4o-mini-tts, ~5 palavras): ~$0.001
+- tts gemini (2.5-flash-tts): ~$0.001 (em crédito Google)
 
 Veo NÃO entra aqui — caro demais ($30+/run). Smoke manual em
 `docs/sprint3-smoke.md`.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -29,11 +32,13 @@ from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
 from contadinhos.core.schemas import Roteiro
 from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
 from contadinhos.core.transcribe import OpenAITranscriber
-from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
+from contadinhos.core.tts.gemini import GeminiTTS
+from contadinhos.core.tts.openai import OpenAITTS
 
 
 def _load_env_once():
     from dotenv import load_dotenv
+
     project_root = Path(__file__).resolve().parents[2]
     load_dotenv(project_root / ".env")
 
@@ -96,21 +101,38 @@ def test_real_nano_banana_gera_imagem(tmp_path):
 
 
 @pytest.mark.real_provider
-def test_real_elevenlabs_tts_curto(tmp_path):
-    """ElevenLabs TTS — texto curto. Custo: ~$0.05.
+def test_real_openai_tts_curto(tmp_path):
+    """OpenAI gpt-4o-mini-tts — texto curto. Custo: ~$0.001.
 
     Verifica que: 1) responde sem erro 2) WAV válido (RIFF header).
     """
-    key = _require("ELEVENLABS_API_KEY")
-    tts = ElevenLabsTTS(api_key=key)
+    key = _require("OPENAI_API_KEY")
+    tts = OpenAITTS(api_key=key)
     out = tts.synthesize(
         text="Olá, eu sou a Clarinha.",
         voice_id="default",
-        output_path=tmp_path / "smoke.wav",
+        output_path=tmp_path / "smoke_openai.wav",
     )
     assert out.exists()
-    assert out.stat().st_size > 1000  # WAV mínimo plausível
-    # WAV RIFF header
+    assert out.stat().st_size > 1000
+    assert out.read_bytes()[:4] == b"RIFF"
+
+
+@pytest.mark.real_provider
+def test_real_gemini_tts_curto(tmp_path):
+    """Gemini 2.5 Flash TTS — texto curto. Custo: ~$0.001 (crédito Google).
+
+    Valida o envelope PCM→WAV contra o output real do Gemini.
+    """
+    key = _require("GOOGLE_GENERATIVE_AI_API_KEY")
+    tts = GeminiTTS(api_key=key)
+    out = tts.synthesize(
+        text="Olá, eu sou a Clarinha.",
+        voice_id="default",
+        output_path=tmp_path / "smoke_gemini.wav",
+    )
+    assert out.exists()
+    assert out.stat().st_size > 1000
     assert out.read_bytes()[:4] == b"RIFF"
 
 

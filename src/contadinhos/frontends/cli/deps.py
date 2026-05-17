@@ -4,12 +4,12 @@ Sprint 3: `_real_deps()` monta providers reais lendo keys de `.env` via
 python-dotenv. Fakes continuam disponíveis via `--with-fakes` ou env
 `CONTADINHOS_FAKES=1`.
 """
+
 from __future__ import annotations
 
 import os
 
 from contadinhos.core.pipeline import PipelineDeps
-
 
 _DOTENV_LOADED = False
 
@@ -20,6 +20,7 @@ def _ensure_env_loaded() -> None:
     if _DOTENV_LOADED:
         return
     from dotenv import load_dotenv
+
     project_root = _project_root()
     load_dotenv(project_root / ".env")
     _DOTENV_LOADED = True
@@ -29,8 +30,7 @@ def _require_env(key: str) -> str:
     val = os.environ.get(key)
     if not val:
         raise RuntimeError(
-            f"variável de ambiente {key} não definida. "
-            f"Adicione em .env ou exporte no shell."
+            f"variável de ambiente {key} não definida. Adicione em .env ou exporte no shell."
         )
     return val
 
@@ -45,6 +45,29 @@ def _project_root():
     raise RuntimeError("pyproject.toml não encontrado a partir de " + str(p))
 
 
+def _build_tts(openai_key: str, google_key: str):
+    """Instancia o TTS conforme `config/providers.yaml::tts.provider`.
+
+    Fix Sprint 5b: só a key do provider **ativo** é exigida. ElevenLabs
+    deixou de ser bloqueador incondicional do boot. OpenAI/Gemini
+    reaproveitam keys já exigidas pelas outras etapas.
+    """
+    from contadinhos.core.config import load_config
+
+    provider = load_config("providers").get("tts", {}).get("provider", "openai")
+    if provider == "elevenlabs":
+        from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
+
+        return ElevenLabsTTS(api_key=_require_env("ELEVENLABS_API_KEY"))
+    if provider == "gemini":
+        from contadinhos.core.tts.gemini import GeminiTTS
+
+        return GeminiTTS(api_key=google_key)
+    from contadinhos.core.tts.openai import OpenAITTS
+
+    return OpenAITTS(api_key=openai_key)
+
+
 def _fake_deps() -> PipelineDeps:
     # Imports locais — Fakes vivem em tests/, não devem ser carregados
     # em modo real (provoca erro se tests/ for podada do deploy).
@@ -54,9 +77,9 @@ def _fake_deps() -> PipelineDeps:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
+    from tests.fakes.fake_image_generator import FakeImageGenerator
     from tests.fakes.fake_post_gate import FakePostGate
     from tests.fakes.fake_pre_gate import FakePreGateAuditor
-    from tests.fakes.fake_image_generator import FakeImageGenerator
     from tests.fakes.fake_roteirista import FakeRoteirista
     from tests.fakes.fake_transcriber import FakeTranscriber
     from tests.fakes.fake_tts import FakeTTS
@@ -84,7 +107,6 @@ def _real_deps() -> PipelineDeps:
     _ensure_env_loaded()
     openai_key = _require_env("OPENAI_API_KEY")
     google_key = _require_env("GOOGLE_GENERATIVE_AI_API_KEY")
-    elevenlabs_key = _require_env("ELEVENLABS_API_KEY")
 
     from contadinhos.core.config import load_config
     from contadinhos.core.images.nano_banana import NanoBananaImageGenerator
@@ -92,7 +114,6 @@ def _real_deps() -> PipelineDeps:
     from contadinhos.core.policy.pre_gate import GeminiPreGateAuditor
     from contadinhos.core.script.openai_roteirista import OpenAIRoteirista
     from contadinhos.core.transcribe import OpenAITranscriber
-    from contadinhos.core.tts.elevenlabs import ElevenLabsTTS
     from contadinhos.core.upload.youtube import YouTubeUploader
     from contadinhos.core.video.veo import Veo31VideoGenerator
 
@@ -104,7 +125,7 @@ def _real_deps() -> PipelineDeps:
         pre_gate=GeminiPreGateAuditor(api_key=google_key),
         image_generator=NanoBananaImageGenerator(api_key=google_key),
         video_generator=Veo31VideoGenerator(api_key=google_key),
-        tts=ElevenLabsTTS(api_key=elevenlabs_key),
+        tts=_build_tts(openai_key, google_key),
         post_gate=GeminiPostGate(api_key=google_key),
         # YouTubeUploader é lazy-loaded — credentials só são consultadas
         # no momento do upload (run_publish), permitindo rodar transcribe→

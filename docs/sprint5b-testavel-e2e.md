@@ -23,29 +23,29 @@
 
 ### Fase A — Destravar TTS sem ElevenLabs (código, TDD)
 
-- [ ] **Fix bloqueador** em `frontends/cli/deps.py::_real_deps()`: hoje
+- [x] **Fix bloqueador** em `frontends/cli/deps.py::_real_deps()`: hoje
   `_require_env("ELEVENLABS_API_KEY")` roda **incondicional**
   ([deps.py:87](../src/contadinhos/frontends/cli/deps.py)) → sem a key,
   `_real_deps()` morre no boot mesmo com TTS=OpenAI. Tornar a exigência de
   key **condicional ao provider de TTS selecionado** em
   `config/providers.yaml::tts.provider`.
-- [ ] `core/tts/openai.py::OpenAITTS` — espelha `elevenlabs.py`. Usa
+- [x] `core/tts/openai.py::OpenAITTS` — espelha `elevenlabs.py`. Usa
   `client.audio.speech.create(model="gpt-4o-mini-tts", voice=…,
   input=text, instructions=…, response_format="wav")`. `@retryable("tts")`.
   Atributo `.model` pro `_provider_id` do ledger.
-- [ ] `core/tts/gemini.py::GeminiTTS` — Gemini 2.5 Flash TTS via
+- [x] `core/tts/gemini.py::GeminiTTS` — Gemini 2.5 Flash TTS via
   `google-genai`, mesma `GOOGLE_GENERATIVE_AI_API_KEY`. `@retryable("tts")`.
-- [ ] `config/voices.yaml`: voz default + **instrução de estilo** pt-BR
+- [x] `config/voices.yaml`: voz default + **instrução de estilo** pt-BR
   ("narrador de história infantil, caloroso, pausado, tom de livro
   ilustrado em aquarela") — dado em config, nunca f-string no código.
-- [ ] `config/providers.yaml`: `tts.provider` selecionável
+- [x] `config/providers.yaml`: `tts.provider` selecionável
   (`openai` | `gemini` | `elevenlabs`); default = `openai`.
-- [ ] Wire em `_real_deps()`: instancia o TTS conforme `tts.provider`.
+- [x] Wire em `_real_deps()`: instancia o TTS conforme `tts.provider`.
 
 ### Fase B — Política de custo de vídeo (config, sem código)
 
-- [ ] `config/providers.yaml`: `video.model: veo-3.1-lite-generate-preview`.
-- [ ] Comentário de política no YAML: **Lite = plumbing/dev**, **Fast =
+- [x] `config/providers.yaml`: `video.model: veo-3.1-lite-generate-preview`.
+- [x] Comentário de política no YAML: **Lite = plumbing/dev**, **Fast =
   teto de produção**, **Standard morto** (arena ELO: Fast≈Standard dentro
   do erro, 4× o preço), Seedance 2.0 = galho `decisions.md §19` (só
   reabrir se consistência da Clarinha no Veo decepcionar em I2V real).
@@ -67,7 +67,7 @@
 
 ### Fase D — Gate barato (smoke real, ~$0.10) — obrigatório antes do Veo
 
-- [ ] Atualizar `tests/integration/test_real_providers.py`: cobrir
+- [x] Atualizar `tests/integration/test_real_providers.py`: cobrir
   `OpenAITTS` + `GeminiTTS` reais; condicionar/remover o teste ElevenLabs.
 - [ ] `uv run pytest -m real_provider` verde. **Só passa → libera Fase E.**
 
