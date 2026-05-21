@@ -17,10 +17,11 @@
 
 **Data:** 2026-05-21
 **Sprint mais recente fechada:** Sprint 5 — Publish ✅ (pós-gate multimodal + upload YouTube + OAuth desktop, commit `e462437`)
-**Em andamento (paralelo a Sprint 6):** Sprint 5b — Tornar pipeline real testável E2E. Plano em [`docs/sprint5b-testavel-e2e.md`](./sprint5b-testavel-e2e.md).
+**Sprint 5b — Testável E2E** ([plano](./sprint5b-testavel-e2e.md)):
 - Fase A ✅ — TTS sem ElevenLabs (OpenAI default + Gemini opcional) + Veo Lite default (commit `fdb62b7`)
-- Fases B–E pendentes — setup manual (OAuth token, `.env`, áudio de teste) → gate barato `pytest -m real_provider` → E2E real capado <$1
-**Sprint ativa próxima:** **Sprint 6 — Telegram** (frontend de operação) ou conclusão Sprint 5b — independentes.
+- Fases B–E ⏳ pendentes — absorvidas pela Sprint 5c abaixo
+**Sprint ativa próxima:** **Sprint 5c — Resolver Vertex + executar primeiro teste real** ([plano](./sprint5c-testes-reais.md)). Inclui resolver o refator Auth Google → Vertex AI (em flight no working tree de Kaique) **antes** das Fases C–E de Sprint 5b. Pré-req pra Sprint 7 (calibração).
+**Sprint 6 — Telegram** segue independente; pode rodar em paralelo ou depois.
 **Bloqueios reais:** nenhum.
 
 ---
@@ -35,7 +36,8 @@
 | 3 | **Visuais** | Fase 2.5 + Fase 3 | 1,5 dia | Vinhetas estáticas em `assets/` + imagens-chave aprovadas por story |
 | 4 | **Vídeo + áudio** | Fase 4 + Fase 5 | 3–5 dias | `final.mp4` completo com narração e música, sem upload |
 | 5 | **Publish** | Fase 6 + Fase 7 | 2–3 dias | `contadinhos publish` põe vídeo no canal como `private` |
-| 5b | **Testável E2E** ([doc separado](./sprint5b-testavel-e2e.md)) | ponte 5→7 | ½–1 dia | TTS sem ElevenLabs + Veo Lite + 1ª story real chega a `done` <$1 |
+| 5b | **Testável E2E (código)** ([doc](./sprint5b-testavel-e2e.md)) | ponte 5→7 | ½ dia | TTS sem ElevenLabs + Veo Lite (Fase A ✅) |
+| 5c | **Vertex + Testes reais** ([doc](./sprint5c-testes-reais.md)) | ponte 5→7 | 1 dia | Auth Vertex resolvido + `pytest -m real_provider` verde + 1ª story real em `done` <$1 |
 | 6 | **Telegram** | Fase 7.5 | 2–3 dias | Você manda áudio no iPhone, bot retorna `final.mp4` no chat |
 | 7 | **Calibração** | Fase 8 | 4 semanas calendário | 10–20 vídeos rodados, prompts afinados, `publish_mode` decidido |
 
