@@ -126,7 +126,10 @@ advisory por story via `Story.lock()` (`fcntl.flock`, não-blocking).
   correspondente em `tests/fakes/`.
 - **Auth Google:** uma única `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini API
   direta, não Vertex/ADC) atende Veo + Nano Banana + Gemini multimodal
-  (pré/pós-gate). OpenAI key cobre STT + roteirista; ElevenLabs key cobre TTS.
+  (pré/pós-gate) + Gemini TTS. OpenAI key cobre STT + roteirista +
+  `gpt-4o-mini-tts` (TTS default desde Sprint 5b). `ELEVENLABS_API_KEY` só
+  obrigatória quando `config/providers.yaml::tts.provider == "elevenlabs"`
+  (legacy) — `_real_deps()` valida condicionalmente.
 
 ## TDD por feature (decisions §20.2)
 

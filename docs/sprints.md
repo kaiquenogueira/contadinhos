@@ -15,10 +15,13 @@
 
 ## Estado atual
 
-**Data:** 2026-05-07
-**Sprint ativa:** **Sprint 2 — Roteiro real** (próxima)
-**Sprint mais recente fechada:** Sprint 1 — Foundations ✅ (29 testes verdes, `final.mp4` gerado via Fakes em `stories/2026-05-07-raposa-curiosa/`)
-**Bloqueios reais:** nenhum. Sprint 0 paraleliza — falta só `gcloud auth application-default login` + `.env` populado pra começar Sprint 2.
+**Data:** 2026-05-21
+**Sprint mais recente fechada:** Sprint 5 — Publish ✅ (pós-gate multimodal + upload YouTube + OAuth desktop, commit `e462437`)
+**Em andamento (paralelo a Sprint 6):** Sprint 5b — Tornar pipeline real testável E2E. Plano em [`docs/sprint5b-testavel-e2e.md`](./sprint5b-testavel-e2e.md).
+- Fase A ✅ — TTS sem ElevenLabs (OpenAI default + Gemini opcional) + Veo Lite default (commit `fdb62b7`)
+- Fases B–E pendentes — setup manual (OAuth token, `.env`, áudio de teste) → gate barato `pytest -m real_provider` → E2E real capado <$1
+**Sprint ativa próxima:** **Sprint 6 — Telegram** (frontend de operação) ou conclusão Sprint 5b — independentes.
+**Bloqueios reais:** nenhum.
 
 ---
 
@@ -32,6 +35,7 @@
 | 3 | **Visuais** | Fase 2.5 + Fase 3 | 1,5 dia | Vinhetas estáticas em `assets/` + imagens-chave aprovadas por story |
 | 4 | **Vídeo + áudio** | Fase 4 + Fase 5 | 3–5 dias | `final.mp4` completo com narração e música, sem upload |
 | 5 | **Publish** | Fase 6 + Fase 7 | 2–3 dias | `contadinhos publish` põe vídeo no canal como `private` |
+| 5b | **Testável E2E** ([doc separado](./sprint5b-testavel-e2e.md)) | ponte 5→7 | ½–1 dia | TTS sem ElevenLabs + Veo Lite + 1ª story real chega a `done` <$1 |
 | 6 | **Telegram** | Fase 7.5 | 2–3 dias | Você manda áudio no iPhone, bot retorna `final.mp4` no chat |
 | 7 | **Calibração** | Fase 8 | 4 semanas calendário | 10–20 vídeos rodados, prompts afinados, `publish_mode` decidido |
 
@@ -219,27 +223,26 @@ gera `final.mp4` (trash) sem fazer nenhuma chamada HTTP/API. **Custo: US$0.**
 
 ### Tasks (Fase 2 — 1–2 dias)
 
-- [ ] Substituir stub do `transcribe`: integrar OpenAI **`gpt-4o-transcribe`** (`core/transcribe.py::OpenAITranscriber`); modelo lido de `config/providers.yaml::transcribe.model`
-- [ ] Substituir stub do `script`:
-  - [ ] Carregar prompt do roteirista de `config/prompts/script.md` — seguir §3.3 (system prompt explícito, 1–2 few-shot, style guide externalizado, constraints negativos)
-  - [ ] Chamar OpenAI **`gpt-5-mini`** com structured output (`response_format=json_schema` sobre o pydantic `Roteiro`); modelo lido de `config/providers.yaml::script.model`. Fallback `gpt-5.5` reservado pra Sprint 7 se calibração apontar dor.
-  - [ ] Validar saída JSON contra pydantic (`Roteiro` schema)
-  - [ ] Adicionar `sinopse_curta` ao schema do roteiro (§8.3) — **já contemplado** no schema entregue na Sprint 1
-- [ ] Provider real ganha `@retryable(provider="openai")` (Sprint 1 §8.8 já tem o decorator)
-- [ ] Implementar pré-gate como **chamada LLM separada** (§7.1):
-  - [ ] `core/policy/pre_gate.py::GeminiPreGateAuditor`: recebe `Roteiro`, retorna `PolicyCheck`
-  - [ ] Prompt em `config/prompts/pre_gate.md` (persona de auditor estrito)
-  - [ ] Modelo **`gemini-2.5-flash`** via `GOOGLE_GENERATIVE_AI_API_KEY` (config em `config/policy.yaml::pre_gate.model`) — **provider diferente do roteirista** garante independência (§7.1)
-  - [ ] Sobrescreve `policy_check` no `roteiro.json`
-  - [ ] Custo registrado no ledger (`step: "pre_gate", paid_via: "google_credits"`)
-- [ ] Implementar bloqueio do CLI quando `policy_check.verdict == "review_required"`:
-  - [ ] CLI mostra flags + abre `$EDITOR` no `roteiro.json`
-  - [ ] Após salvar, re-rodar pré-gate só na parte editada (ou validar manualmente)
-- [ ] Snapshot de prompts em `prompts_snapshot.json` na story (§16)
-- [ ] Cost ledger: registrar custos de transcribe e script com `paid_via` (§11.3)
-- [ ] Tests:
-  - [ ] `tests/integration/test_script.py` com roteiro mock pra validar schema
-  - [ ] `tests/unit/test_pre_gate.py` com casos de hard fail/soft fail
+- [x] Substituir stub do `transcribe`: integrar OpenAI **`gpt-4o-transcribe`** (`core/transcribe.py::OpenAITranscriber`); modelo lido de `config/providers.yaml::transcribe.model`
+- [x] Substituir stub do `script`:
+  - [x] Carregar prompt do roteirista de `config/prompts/roteirista.md` (nome final em vez de `script.md`) — seguir §3.3
+  - [x] Chamar OpenAI **`gpt-5-mini`** com structured output (`response_format=json_schema` sobre o pydantic `Roteiro`); modelo lido de `config/providers.yaml::script.model`. Fallback `gpt-5.5` reservado pra Sprint 7 se calibração apontar dor.
+  - [x] Validar saída JSON contra pydantic (`Roteiro` schema)
+  - [x] `sinopse_curta` já contemplado no schema desde Sprint 1
+- [x] Provider real ganha `@retryable(provider="openai")` (em `core/providers/retry.py`)
+- [x] Implementar pré-gate como **chamada LLM separada** (§7.1):
+  - [x] `core/policy/pre_gate.py::GeminiPreGateAuditor`: recebe `Roteiro`, retorna `PolicyCheck`
+  - [x] Prompt em `config/prompts/pre_gate.md` (persona de auditor estrito)
+  - [x] Modelo **`gemini-2.5-flash`** via `GOOGLE_GENERATIVE_AI_API_KEY` (config em `config/policy.yaml::pre_gate.model`) — **provider diferente do roteirista** garante independência (§7.1)
+  - [x] Sobrescreve `policy_check` no `roteiro.json`
+  - [x] Custo registrado no ledger (`step: "pre_gate", paid_via: "google_credits"`)
+- [~] Bloqueio do CLI quando `policy_check.verdict == "review_required"`:
+  - [x] CLI mostra flags e sai com exit code 2 (`PipelineBlocked` em `pipeline.py`)
+  - [ ] Auto-abertura de `$EDITOR` no `roteiro.json` — **não implementado**, hoje user edita manual e re-roda
+  - [ ] Re-rodar pré-gate só na parte editada — **não implementado**
+- [ ] Snapshot de prompts em `prompts_snapshot.json` na story (§16) — **pendência aberta**
+- [x] Cost ledger: registrar custos de transcribe e script com `paid_via` (§11.3)
+- [x] Tests: `test_pre_gate_logic.py`, `test_script_schema.py`, `test_openai_roteirista.py`, `test_transcriber.py`, `test_cost_ledger.py`, `tests/integration/test_pipeline_cost_ledger.py`
 
 ### Como implementar (TDD)
 
@@ -309,7 +312,7 @@ levanta flag de `medo`/`violencia`, CLI bloqueia.
 
 ### Tasks
 
-#### Fase 2.5 — Assets de marca (½ dia)
+#### Fase 2.5 — Assets de marca (½ dia) — **PENDENTE** (não entregue na Sprint 3 commitada)
 - [ ] Definir prompt de identidade visual em `config/prompts/brand.md`
 - [ ] Script `scripts/generate_brand_assets.py` (oneshot):
   - [ ] Gera vinheta abertura (Nano Banana → Pillow finaliza texto se preciso)
@@ -323,16 +326,15 @@ levanta flag de `medo`/`violencia`, CLI bloqueia.
 > Se a Clarinha "drifar" entre vídeos no Sprint 7, voltar aqui.
 
 #### Fase 3 — Imagens-chave (1 dia)
-- [ ] `core/images/base.py` define `ImageGenerator` interface
-- [ ] `core/images/nano_banana.py` implementa via `google-genai` (Vertex AI)
-- [ ] CLI `contadinhos images <story>`:
-  - [ ] Para cada `imagem_chave` no roteiro: gerar 4 candidatas
-  - [ ] `open` no macOS abre as 4 no Preview
-  - [ ] CLI pede índice da escolhida (typer prompt)
-  - [ ] Copia escolhida pra `images/<personagem>/chosen.png`
-- [ ] Snapshot de prompts dos personagens (§16)
-- [ ] Cost ledger atualizado
-- [ ] Tests: `tests/integration/test_images.py` (com mock do provider)
+- [x] `core/images/base.py` define `ImageGenerator` interface
+- [x] `core/images/nano_banana.py` implementa via `google-genai`
+- [x] CLI `contadinhos images <story>`:
+  - [x] Para cada `imagem_chave` no roteiro: gerar N candidatas (N=4 default)
+  - [~] Escolha humana via subcomando `contadinhos pick <story> <img_id> -c N` (em vez de typer prompt + `open` automático — UX simplificada)
+  - [x] Copia escolhida pra `images/<img_id>/chosen.png` (`core/images/picker.py`)
+- [ ] Snapshot de prompts dos personagens (§16) — **pendência aberta**
+- [x] Cost ledger atualizado (com `paid_via=google_credits`)
+- [x] Tests: `test_pick_images.py`, `test_fake_image_generator.py`, `test_nano_banana.py`
 
 ### Como implementar (TDD)
 
@@ -395,36 +397,41 @@ por personagem e grava as escolhas em `images/<personagem>/chosen.png`.
 ### Tasks
 
 #### Fase 4 — Geração de vídeo (2–3 dias)
-- [ ] `core/video/base.py` define `VideoGenerator` interface (`generate_clip(prompt, duration_s, first_frame=None) -> Path`)
-- [ ] `core/video/veo.py` — **porte de `veo3/generate.py`**:
-  - [ ] Reaproveitar: padrão `genai.Client(vertexai=True)` + `models.generate_videos` + polling 600s
-  - [ ] Reaproveitar: `extract_last_frame` via ffmpeg
-  - [ ] Reaproveitar: `negative_prompt` (mover pra `config/providers.yaml`)
-  - [ ] Adaptar: cenas curtas (8s × ~10) em vez de 3 longas
-  - [ ] Modo I2V quando `cena.imagem_chave_ref` setada (`image=Image.from_file(chosen.png)`)
-  - [ ] Modo T2V quando não (paisagem pura)
-  - [ ] **Sem chaining de last-frame por padrão** (§3.2). Cada cena é independente. Flag `video.chain_first_frame` em `config/pipeline.yaml` fica opt-in experimental, desabilitado por padrão.
-- [ ] `core/video/kling.py` — implementação alternativa (provider plugável, mas pode ser stub agora)
-- [ ] `core/video/factory.py` lê `config/providers.yaml` `video.provider` e instancia o correto
-- [ ] **Pre-flight check** (§11.2): antes de chamar Veo, somar estimativa nominal (`len(cenas) × duracao_média × cost_per_second` lido de `config/providers.yaml`) e abortar se passar do teto, **antes de gastar**
-- [ ] Hard-fail post-hoc no teto por-vídeo (US$80 nominal Veo na calibração, §11.2 — fallback caso pre-flight tenha subestimado)
-- [ ] Cost ledger atualizado com custo nominal Veo
-- [ ] Após pipeline funcionar: **deletar `veo3/`** ou mover pra `docs/reference/veo3-original.py`
+- [x] `core/video/base.py` define `VideoGenerator` interface
+- [x] `core/video/veo.py` — **porte de `veo3/generate.py`**:
+  - [x] Reaproveitar: `models.generate_videos` + polling 600s
+  - [ ] `extract_last_frame` via ffmpeg — **não reaproveitado** (chaining desligado por padrão, §3.2)
+  - [x] Reaproveitar: `negative_prompt` (em `config/providers.yaml`)
+  - [x] Adaptar: cenas curtas (8s × ~10) em vez de 3 longas
+  - [x] Modo I2V quando `cena.imagem_chave_ref` setada
+  - [x] Modo T2V quando não (paisagem pura)
+  - [x] **Sem chaining de last-frame por padrão** (§3.2). Flag `video.chain_first_frame` em `config/pipeline.yaml`, hoje desabilitado.
+  - [x] **Default Veo Lite** (Sprint 5b, 2026-05-17) — `veo-3.1-lite-generate-preview` em `providers.yaml::video.model`; tier Fast como teto de produção
+- [ ] `core/video/kling.py` — **não criado** (criar quando Kling virar fallback real)
+- [ ] `core/video/factory.py` — **não criado** (wiring direto em `frontends/cli/deps.py:_real_deps()`; factory só faz sentido com >1 provider real)
+- [ ] **Pre-flight check** (§11.2) — **não implementado**, `core/budget.py` só tem ledger pós-hoc
+- [ ] Hard-fail post-hoc no teto por-vídeo — **não implementado**
+- [x] Cost ledger atualizado com custo nominal Veo
+- [ ] Após pipeline funcionar: deletar/arquivar `veo3/` — segue como referência (gitignored)
 
 #### Fase 5 — TTS + montagem (1–2 dias)
-- [ ] `core/tts/base.py` define `TTSProvider` interface
-- [ ] `core/tts/elevenlabs.py` implementa
-- [ ] CLI `contadinhos tts <story>`:
-  - [ ] Para cada cena no roteiro, gerar narração WAV em `audio/narration_<idx>.wav`
-  - [ ] Voice ID padrão em `config/voices.yaml`
-- [ ] `core/assemble/ffmpeg.py`:
-  - [ ] Concat dos clipes na ordem das cenas
-  - [ ] Mix narração por cena com timing correto (offset = soma das durações anteriores)
-  - [ ] Música de fundo (rotação de `assets/music/`) com `volume=0.15`
-  - [ ] `drawtext` da narração (legendas) por cena
-  - [ ] Prepend `assets/intro.mp4`, append `assets/outro.mp4`
-  - [ ] Output: `final.mp4` 1080p H.264/AAC 30fps
-- [ ] Cost ledger ElevenLabs
+- [x] `core/tts/base.py` define `TTSProvider` interface
+- [x] `core/tts/elevenlabs.py` implementa (impl original, hoje legacy)
+- [x] `core/tts/openai.py` (Sprint 5b) — **default desde 2026-05-17**, `gpt-4o-mini-tts` com `instructions` de estilo pt-BR
+- [x] `core/tts/gemini.py` (Sprint 5b) — alternativa via Gemini 2.5 Flash TTS
+- [x] CLI `contadinhos tts <story>`:
+  - [x] Para cada cena no roteiro, gerar narração WAV em `audio/narration_<idx>.wav`
+  - [x] Voice ID + instrução de estilo em `config/voices.yaml`
+  - [x] Provider selecionável via `config/providers.yaml::tts.provider` (`openai` | `gemini` | `elevenlabs`)
+  - [x] `_real_deps()` exige key **condicional ao provider selecionado** (não força ElevenLabs)
+- [~] `core/assemble/ffmpeg.py`:
+  - [x] Concat dos clipes na ordem das cenas
+  - [x] Mix narração por cena com timing correto
+  - [ ] Música de fundo (rotação de `assets/music/`) com `volume=0.15` — **adiado pra Sprint 4.5+** (docstring do módulo)
+  - [ ] `drawtext` da narração (legendas) — **adiado pra Sprint 4.5+**
+  - [ ] Prepend `assets/intro.mp4`, append `assets/outro.mp4` — **adiado** (assets ainda não gerados, Fase 2.5 pendente)
+  - [x] Output: `final.mp4` H.264/AAC (validação via ffprobe em `validate_final`)
+- [x] Cost ledger TTS
 
 ### Como implementar (TDD)
 
@@ -495,32 +502,30 @@ Porte de `veo3/generate.py` segue ordem: contrato (`base.py`) → impl Veo (`veo
 ### Tasks
 
 #### Fase 6 — Pós-gate multimodal (1 dia)
-- [ ] `core/policy/post_gate.py`:
-  - [ ] Extrai N frame samples do `final.mp4` via ffmpeg (a cada ~7s)
-  - [ ] Extrai trecho de áudio (primeiros 30s)
-  - [ ] Chama Gemini 2.5 Flash com prompt em `config/prompts/post_gate.md`
-  - [ ] Atualiza `policy_check` no `roteiro.json` (mescla flags com pré-gate, §7.4)
-- [ ] CLI `contadinhos publish <story>`:
-  - [ ] Roda pós-gate
-  - [ ] Se `verdict == "review_required"`, bloqueia, mostra flags
-  - [ ] Se ok, segue pra upload
+- [~] `core/policy/post_gate.py`:
+  - [ ] ~~Extrai N frame samples do `final.mp4` via ffmpeg~~ — abordagem mudada: manda MP4 inteiro via Files API (Gemini API direta). Gemini multimodal consome o vídeo direto, frame sampling desnecessário.
+  - [ ] ~~Extrai trecho de áudio (primeiros 30s)~~ — idem, vídeo inteiro inclui áudio.
+  - [x] Chama Gemini 2.5 Flash com prompt em `config/prompts/post_gate.md`
+  - [~] Atualiza `policy_check` — hoje grava em `policy_check_post.json` separado (audit trail), não mescla no `roteiro.json`. Mescla com pré-gate fica como pendência se §7.4 exigir.
+- [x] CLI `contadinhos publish <story>`:
+  - [x] Roda pós-gate
+  - [x] Se `verdict == "review_required"`, bloqueia (`PipelineBlocked`), mostra flags
+  - [x] Se ok, segue pra upload
 
 #### Fase 7 — Upload YouTube (1–2 dias)
-- [ ] `core/upload/auth.py`: OAuth desktop flow, gera/refresh token em `.secrets/youtube_token.json`
-- [ ] `core/upload/youtube.py`:
-  - [ ] `videos.insert` com:
-    - `status.privacyStatus` = lê de `config/youtube.yaml::publish_mode` (private_only / unlisted_review / direct_public; ver §8.2)
+- [x] `core/upload/auth.py`: OAuth desktop flow, gera/refresh token em `~/.contadinhos/youtube_token.json` (caminho real diverge do plano `.secrets/`)
+- [x] `core/upload/youtube.py`:
+  - [x] `videos.insert` com:
+    - `status.privacyStatus` lê de `config/youtube.yaml::publish_mode` via `to_privacy_status`
     - `status.selfDeclaredMadeForKids = true`
-    - `snippet.categoryId = 1`
-    - `snippet.defaultLanguage = pt-BR`
-    - `snippet.title` via template (sufixo `| contadinhos` lowercase)
-    - `snippet.description` via template + `sinopse_curta` (§8.3)
-    - `snippet.tags` = lista fixa em config + 1–2 do roteiro
-  - [ ] `thumbnails.set` com `images/<protagonista>/chosen.png` redimensionada via Pillow (1280×720, ≤2MB)
-  - [ ] Fallback se `thumbnails.set` falhar (canal não verificado): segue sem thumbnail custom
-  - [ ] Grava `upload_result.json` com `videoId`, URL, status
-- [ ] **Em paralelo:** submeter [auditoria de compliance](https://support.google.com/youtube/contact/yt_api_form) ao Google
-- [ ] Quality bar checklist no CLI (§15) antes do botão de promover (mas só relevante quando `publish_mode != private_only`)
+    - `snippet.categoryId` + `defaultLanguage` lidos de `youtube.yaml`
+    - `snippet.title` + `description` via templates em `youtube.yaml`
+    - `snippet.tags` = lista fixa em config
+  - [ ] `thumbnails.set` com Pillow resize — **não implementado**
+  - [ ] Fallback silencioso de thumbnails — **N/A** (thumbnails ainda não implementado)
+  - [x] Grava `upload_result.json` com `videoId`, URL
+- [ ] **Em paralelo:** submeter [auditoria de compliance](https://support.google.com/youtube/contact/yt_api_form) ao Google — **pendência operacional**, condição pra sair de `private_only`
+- [ ] Quality bar checklist no CLI (§15) — **não implementado** (só relevante quando `publish_mode != private_only`)
 
 ### Como implementar (TDD)
 

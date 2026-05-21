@@ -31,10 +31,11 @@ detalhes correntes.
 - Python 3.12+ via `uv`
 - Pipeline core (`src/contadinhos/core/`) headless; frontends plugáveis
   (`src/contadinhos/frontends/{cli,telegram}/`)
-- Veo 3.1 (Vertex AI) padrão de geração de vídeo + Nano Banana
-  (Gemini 2.5 Flash Image) pra imagens-chave + ElevenLabs TTS + ffmpeg pra
-  montagem + Whisper STT + Claude/GPT roteirista + Gemini multimodal
-  pós-gate
+- Veo 3.1 (`lite` em dev / `fast` em produção) padrão de geração de vídeo +
+  Nano Banana 2 (`gemini-3.1-flash-image-preview`) pra imagens-chave + TTS
+  via OpenAI `gpt-4o-mini-tts` (default Sprint 5b) ou Gemini 2.5 Flash TTS +
+  ffmpeg pra montagem + `gpt-4o-transcribe` STT + GPT-5 mini roteirista +
+  Gemini 2.5 Flash multimodal pós-gate
 - YouTube Data API v3 pra upload + made-for-kids
 - Backup via `rclone` pro Google Drive
 

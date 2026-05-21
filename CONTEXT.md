@@ -63,9 +63,11 @@ nome inventado fixo. Detalhe em `docs/decisions.md` §1.
 
 ### VideoGenerator / TTSProvider
 Abstrações no código que permitem trocar provedor de vídeo
-(Kling / Veo 3.1 / Runway) e TTS (ElevenLabs / outro) sem mexer no
-resto do pipeline. Princípio: provider-agnostic onde o custo de troca é
-alto.
+(Kling / Veo 3.1 Lite|Fast / Runway / Seedance) e TTS
+(OpenAI `gpt-4o-mini-tts` default / Gemini 2.5 Flash TTS / ElevenLabs legacy)
+sem mexer no resto do pipeline. Provider ativo selecionável via
+`config/providers.yaml`. Princípio: provider-agnostic onde o custo de
+troca é alto.
 
 ### contadinhos (canal)
 Nome do canal YouTube (lowercase, como configurado no Studio) onde os
